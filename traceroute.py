@@ -4,9 +4,11 @@ import time
 
 class Traceroute:
     def __init__(self, dest_name, port=33434, max_ttl=64, packet_size=10,
-                 timeout=False):
+                 timeout=5.0):
         self.dest_name = dest_name
         self.port = port
+        self.max_ttl = max_ttl
+        self.packet_size = packet_size
         self.curr_name = None
         self.dest_addr = socket.gethostbyname(dest_name)
         self.send_s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
@@ -14,15 +16,19 @@ class Traceroute:
         self.list_s = socket.socket(socket.AF_INET, socket.SOCK_RAW,
                                     socket.getprotobyname("ICMP"))
         self.send_s.connect((self.dest_addr, self.port))
-        self.list_s.settimeout(10.0)
+        self.list_s.settimeout(timeout)
         self.ttl = 1
-        self.timeout = timeout
+        self.timeout = False
     def ping(self):
-        while self.curr_name != self.dest_name:
+        while self.curr_name != self.dest_name and self.ttl <= self.max_ttl:
             self.send_s.setsockopt(socket.getprotobyname("IP"),
                                    socket.IP_TTL, self.ttl)
             self.start_time = time.clock()
-            self.send_s.send(" ")
+            # if connection refused, break
+            try:
+                self.send_s.send(" " * self.packet_size)
+            except socket.error:
+                break
             # we only care about the address, so discard data and since the
             # message is sent back icmp, there is no port.
             try:
@@ -41,3 +47,12 @@ class Traceroute:
                                         self.curr_addr, self.elapsed)
             self.timeout = False
             self.ttl += 1
+
+if __name__ == "__main__":
+    t = Traceroute(sys.argv[1])
+    tp = t.ping()
+    while True:
+        try:
+            print tp.next()
+        except StopIteration:
+            break
