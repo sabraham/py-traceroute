@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 import sys
 import socket
 import time
 
-class Traceroute:
+class Traceroute(object):
     def __init__(self, dest_name, port=33434, max_ttl=64, packet_size=10,
                  timeout=5.0):
         self.dest_name = dest_name
