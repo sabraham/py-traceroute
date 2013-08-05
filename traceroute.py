@@ -25,7 +25,7 @@ class Traceroute(object):
         while self.curr_name != self.dest_name and self.ttl <= self.max_ttl:
             self.send_s.setsockopt(socket.getprotobyname("IP"),
                                    socket.IP_TTL, self.ttl)
-            self.start_time = time.clock()
+            self.start_time = time.time()
             # if connection refused, break
             try:
                 self.send_s.send(" " * self.packet_size)
@@ -39,7 +39,7 @@ class Traceroute(object):
                 self.curr_addr = "*"
                 self.curr_name = "*"
                 self.timeout = True
-            self.elapsed = (time.clock() - self.start_time) * 1000
+            self.elapsed = (time.time() - self.start_time) * 1000
             if not self.timeout:
                 try:
                     self.curr_name, _, _ = socket.gethostbyaddr(self.curr_addr)
